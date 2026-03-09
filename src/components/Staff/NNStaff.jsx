@@ -10,8 +10,8 @@ const NNStaff = ({nomina}) => {
                 const data = {
                   "nomina": nomina,
                 }
-                const url_get = "http://10.144.13.5/wl-api/StaffNumber.php"
-                // const url_get = "http://10.144.13.5/wl-api/StaffNumber.php"
+                const url_get = "http://localhost/wl-api/StaffNumber.php"
+                // const url_get = "http://localhost/wl-api/StaffNumber.php"
                 const resp = await fetch(url_get, {
                     method: 'POST',
                     body: JSON.stringify(data),
@@ -39,7 +39,7 @@ const NNStaff = ({nomina}) => {
 
     return<>
     <div className="mb-4">
-        <label htmlFor="" className="block text-white text-sm font-semibold mb-2">NN:</label>
+        <label htmlFor="" className="block text-black text-sm font-semibold mb-2">NN:</label>
         <Input variant="filled" className="w-full px-3 py-2 rounded-lg h-8 bg-white" value={info} readOnly/>
 
     </div>

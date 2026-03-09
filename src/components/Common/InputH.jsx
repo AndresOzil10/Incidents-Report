@@ -15,7 +15,7 @@ const InputH = ({ incidente, handleInputChange}) => {
     return <>
         <div className="mb-4">
             
-            <label htmlFor="" className="block text-white text-sm font-semibold mb-2">Hrs Incidencia:</label>
+            <label htmlFor="" className="block text-black text-sm font-semibold mb-2">Hrs Incidencia:</label>
             <Input placeholder="Hrs Incidencia" variant="filled" className="w-full bg-white  px-3 py-2 rounded-lg h-8" onChange={handleChange}/>
 
         </div>

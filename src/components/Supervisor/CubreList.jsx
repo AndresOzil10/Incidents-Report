@@ -9,8 +9,8 @@ const CubreList = forwardRef((props, ref) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // const url_get = "http://10.144.13.5/wl-api/PersonalList.php"
-                const url_get = "http://10.144.13.5/wl-api/PersonalList.php"
+                // const url_get = "http://localhost/wl-api/PersonalList.php"
+                const url_get = "http://localhost/wl-api/PersonalList.php"
                 const resp = await fetch(url_get, {
                     method: 'GET',
                     headers: {

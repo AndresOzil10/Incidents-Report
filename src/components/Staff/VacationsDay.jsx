@@ -9,8 +9,8 @@ const VacationsDay = ({nomina}) => {
                 const data = {
                   "nomina": nomina,
                 }
-                const url_get = "http://10.144.13.5/wl-api/StaffVacations.php"
-                // const url_get = "http://10.144.13.5/wl-api/StaffVacations.php"
+                const url_get = "http://localhost/wl-api/StaffVacations.php"
+                // const url_get = "http://localhost/wl-api/StaffVacations.php"
                 const resp = await fetch(url_get, {
                     method: 'POST',
                     body: JSON.stringify(data),
@@ -38,7 +38,7 @@ const VacationsDay = ({nomina}) => {
 
     return<>
     <div className="mb-4">
-        <label htmlFor="" className="block text-white text-sm font-semibold mb-2">Dias Actuales:</label>
+        <label className="block text-black text-sm font-semibold mb-2">Dias Actuales:</label>
         <Input variant="filled" className="w-full px-3 py-2 rounded-lg h-8 bg-white" value={dias} readOnly/>
 
     </div>

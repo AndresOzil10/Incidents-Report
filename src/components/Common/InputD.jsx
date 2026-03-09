@@ -26,7 +26,7 @@ const InputD = ({rango, handleDaysCalculated, incidente}) => {
 
     return <>
         <div className="mb-4">
-            <label htmlFor="" className="block text-white text-sm font-semibold mb-2">Dia(s) Incidencia:</label>
+            <label htmlFor="" className="block text-black text-sm font-semibold mb-2">Dia(s) Incidencia:</label>
             <Input placeholder="Filled" variant="filled" className="w-full px-3 py-2 rounded-lg h-8 bg-white" value ={ !rango ? "0" : dias(rango)}/>
 
         </div>

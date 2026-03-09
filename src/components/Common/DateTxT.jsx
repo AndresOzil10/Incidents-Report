@@ -14,7 +14,7 @@ const DateTxT = ({time}) => {
     return <>
     <Fade direction="left">
       <div className="mb-4">
-          <label htmlFor="" className="block text-white text-sm font-semibold mb-2">Fecha Pago TXT:</label>
+          <label htmlFor="" className="block text-black text-sm font-semibold mb-2">Fecha Pago TXT:</label>
           <DatePicker onChange={onChange} className="w-full px-3 py-2 border rounded-lg bg-white"/>
       </div>
     </Fade>

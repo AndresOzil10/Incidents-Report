@@ -21,7 +21,7 @@ const Datepicker = forwardRef((props, ref) => {
     
     return <>
         <div className="mb-4" ref={ref}>
-            <label htmlFor="" className="block text-white text-sm font-semibold mb-2">Fecha Inicial -- Fecha Final:</label>
+            <label htmlFor="" className="block text-black text-sm font-semibold mb-2">Fecha Inicial -- Fecha Final:</label>
             <RangePicker value={selectedDates} onChange={handleDateChange} className="text-black w-[254px]"/>
         </div>
     </>

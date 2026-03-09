@@ -12,7 +12,7 @@ const UnpaidList = ({unpaid}) => {
     return <>
     <Fade direction="left">
         <div className="mb-4">
-            <label htmlFor="" className="block text-white text-sm font-semibold mb-2">Clave Permiso S/goce:</label>
+            <label htmlFor="" className="block text-black text-sm font-semibold mb-2">Clave Permiso S/goce:</label>
             <Select
                 placeholder="Select Incident"
                 className="w-64 border border-white rounded-lg"

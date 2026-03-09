@@ -1,21 +1,49 @@
-
-import {  useRef, useState } from "react"
+import { useRef, useState } from "react"
 import Datepicker from "../Common/DatePicker"
 import InputD from "../Common/InputD"
 import InputH from "../Common/InputH"
 import DateTxT from "../Common/DateTxT"
 import Observation from "../Common/Observation"
-import { Slide } from "react-awesome-reveal"
-import { Flip, toast, ToastContainer } from "react-toastify"
+import { toast, ToastContainer } from "react-toastify"
 import IncidentLS from "./IncidentLS"
 import VacationsDay from "./VacationsDay"
 import NNStaff from "./NNStaff"
 import UnpaidList from "../Common/UnpaidList"
 import DisabilityList from "../Common/DisabilityList"
-import moment from 'moment';
-import { Button, Checkbox, DatePicker, Input, Modal, Select, TimePicker } from "antd"
+import { 
+    Button, 
+    Checkbox, 
+    DatePicker, 
+    Input, 
+    Modal, 
+    TimePicker, 
+    Card, 
+    Space, 
+    Alert, 
+    Tag,
+    Typography,
+    Grid,
+    Row,
+    Col
+} from "antd"
 import { HappyProvider } from "@ant-design/happy-work-theme"
 import Swal from "sweetalert2"
+import { 
+    SaveOutlined, 
+    ClockCircleOutlined, 
+    CalendarOutlined,
+    NotificationOutlined,
+    FormOutlined,
+    CreditCardOutlined,
+    UserOutlined,
+    InfoCircleOutlined,
+    ClearOutlined
+} from '@ant-design/icons'
+
+const { Title, Text } = Typography
+const { useBreakpoint } = Grid
+
+const url_login = 'http://localhost/wl-api/StaffInsert.php'
 
 const enviarData = async (url, data) => {
     const resp = await fetch(url, {
@@ -26,17 +54,14 @@ const enviarData = async (url, data) => {
         }
     })
     const json = await resp.json()
-
-    return  json
+    return json
 }
 
-
-const StaffForm = ({username , identificador, id_consulta, nomina}) => { 
-    //console.log(identificador)
-
-    //const url_login = "http://localhosr/wl-api/StaffInsert.php"
-    const url_login = "http://10.144.13.5/wl-api/StaffInsert.php"
-
+const StaffForm = ({username, identificador, id_consulta, nomina}) => { 
+    const screens = useBreakpoint()
+    const isMobile = !screens.md
+    const isTablet = !screens.lg
+    
     const [date, setDate] = useState(null)
     const [incident, setIncident] = useState('-')
     const [hd, setHd] = useState('-')
@@ -46,11 +71,15 @@ const StaffForm = ({username , identificador, id_consulta, nomina}) => {
     const [disabilityList, setDisabilityList] = useState('-')
     const [observation, setObservation] = useState('-')
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const refOld = useRef(null)
+    const [loading, setLoading] = useState(false)
     const [timeStart, setTimeStart] = useState(null)
     const [timeEnd, setTimeEnd] = useState(null)
     const [notification, setNotification] = useState(false)
     const [datePickerValue, setDatePickerValue] = useState(null)
+
+    const refOld = useRef(null)
+    const incidentLSRef = useRef(null)
+    const InputObservationsRef = useRef(null)
 
     const handleTimeStart = (time) => {
         setTimeStart(time.format('HH:mm:ss'))
@@ -62,7 +91,6 @@ const StaffForm = ({username , identificador, id_consulta, nomina}) => {
 
     const handleDateChange = (dates) => {
         setDatePickerValue(dates)
-        //console.log(dates)
     }
 
     const mostrar = (e) => {
@@ -70,47 +98,81 @@ const StaffForm = ({username , identificador, id_consulta, nomina}) => {
     }
     
     const showModal = () => {
-        setIsModalOpen(true);
+        setIsModalOpen(true)
     }
 
     const handleOk = async () => {
         const fecha = datePickerValue ? datePickerValue.format('YYYY/MM/DD') : null
-        const inputValue = refOld.current.input.value;
-        //console.log(inputValue, timeStart, timeEnd)
-        if(inputValue== null || timeStart == null || timeEnd == null){
-             Swal.fire({
+        const inputValue = refOld.current.input.value
+        
+        if(!inputValue || !timeStart || !timeEnd) {
+            Swal.fire({
                 icon: 'error',
-                title: 'Oops...',
-                text: 'Verifique que los Campos esten completos',
-            });
-        } else {
-            const data = {
-                "nn": inputValue,
-                "username": username,
-                "in": timeStart,
-                "out": timeEnd,
-                "fecha": fecha,
-            }
-            const respuesta = await enviarData('http://10.144.13.5/wl-api/olvido.php', data)
-            //console.log(respuesta)
-            if(respuesta.error){
+                title: 'Campos incompletos',
+                text: 'Por favor complete todos los campos requeridos',
+                background: '#1e293b',
+                color: 'white',
+                confirmButtonColor: '#3b82f6',
+                iconColor: '#ef4444',
+                customClass: { popup: 'rounded-2xl' }
+            })
+            return
+        }
+
+        setLoading(true)
+        const data = {
+            "nn": inputValue,
+            "username": username,
+            "in": timeStart,
+            "out": timeEnd,
+            "fecha": fecha,
+        }
+        
+        try {
+            const respuesta = await enviarData('http://localhost/wl-api/olvido.php', data)
+            
+            if(respuesta.error) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Oops...',
+                    title: 'Error',
                     text: respuesta.error,
-                  });
+                    background: '#1e293b',
+                    color: 'white',
+                    confirmButtonColor: '#3b82f6',
+                    iconColor: '#ef4444',
+                    customClass: { popup: 'rounded-2xl' }
+                })
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: respuesta.success,
+                    background: '#1e293b',
+                    color: 'white',
+                    confirmButtonColor: '#10b981',
+                    iconColor: '#10b981',
+                    customClass: { popup: 'rounded-2xl' }
+                })
+                setIsModalOpen(false)
             }
+        } catch (error) {
             Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: respuesta.success,
-              })
-            //setIsModalOpen(false)
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo conectar con el servidor',
+                background: '#1e293b',
+                color: 'white',
+                confirmButtonColor: '#3b82f6',
+                iconColor: '#ef4444',
+                customClass: { popup: 'rounded-2xl' }
+            })
+        } finally {
+            setLoading(false)
         }
     }
 
     const handleCancel = () => {
-        setIsModalOpen(false);
+        setIsModalOpen(false)
     }
     
     const handleInputChange = (value) => {
@@ -126,8 +188,7 @@ const StaffForm = ({username , identificador, id_consulta, nomina}) => {
     }
 
     const handleDaysCalculated = (value) => {
-        setHd(value);
-        //console.log("Días de incidencia calculados: ", value);
+        setHd(value)
     }
 
     const time = (value) => {
@@ -147,64 +208,80 @@ const StaffForm = ({username , identificador, id_consulta, nomina}) => {
     }
 
     const send = async () => {
-        //console.log(notification)
         if (!date || !incident) {
-            Error('Campos vacios!!!!!')
+            Error('Por favor complete los campos de fecha e incidencia')
             return
         }
-        //console.log(date[0].format('YYYY/MM/DD'))
-        const startDate = (date[0]).format('YYYY/MM/DD')
-        //console.log(startDate)
-        const endDate = (date[1]).format('YYYY/MM/DD')
-        // if(txt && txt != 'N/A'){
-        //     //console.log(txt)
-        //     const txt = (txt).format('YYYY/MM/DD')
-        // }
+
+        setLoading(true)
+        const startDate = date[0].format('YYYY/MM/DD')
+        const endDate = date[1].format('YYYY/MM/DD')
+        
         const data = {
             "nn": nomina,
             "fecha_ini": startDate,
             "fecha_fin": endDate,
             "incident": incident,
-            "d":  hd,
-            "h":  inputValue,
-            "txt":  txt,
+            "d": hd,
+            "h": inputValue,
+            "txt": txt,
             "unpaid": unpaidList,
             "disability": disabilityList,
             "observaciones": observation,
             "username": username,
             "notificacion": notification
         }
-        //console.log(data)
-        const respuesta = await enviarData(url_login, data)
-        //console.log(respuesta)
-        if(respuesta.error){
-            Error(respuesta.error)
-        }
-        limpiarCampos()
-        Success(respuesta.success)
         
-        //limpiarCampos()
-
-
-        //window.location.reload()
+        try {
+            const respuesta = await enviarData(url_login, data)
+            
+            if(respuesta.error) {
+                Error(respuesta.error)
+            } else {
+                Success(respuesta.success)
+                limpiarCampos()
+            }
+        } catch (error) {
+            Error('Error de conexión con el servidor')
+        } finally {
+            setLoading(false)
+        }
     }
 
     const Error = (error) => {
-        toast.error(error)
-    }
-
-    const onChange = (value) => {
-        setIncident(value)
-        //incidente(value)
+        toast.error(error, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "colored",
+            style: {
+                background: '#1e293b',
+                color: 'white',
+                borderLeft: '4px solid #ef4444',
+                borderRadius: '8px'
+            }
+        })
     }
 
     const Success = (message) => {
-        toast.success(message, //{
-        //     onClose: () => {
-        //         limpiarCampos()
-        //         //window.location.reload();
-        //     }
-        )
+        toast.success(message, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "colored",
+            style: {
+                background: '#1e293b',
+                color: 'white',
+                borderLeft: '4px solid #10b981',
+                borderRadius: '8px'
+            }
+        })
     }
 
     const limpiarCampos = () => {
@@ -216,103 +293,381 @@ const StaffForm = ({username , identificador, id_consulta, nomina}) => {
         setUnpaidList('-')
         setDisabilityList('-')
         setObservation('-')
-        incidentLSRef.current.limpiar()
-        InputObservationsRef.current.limpiar()
+        incidentLSRef.current?.limpiar()
+        InputObservationsRef.current?.limpiar()
         setNotification(false)
-
     }
 
-    const incidentLSRef = useRef(null)
-    const InputObservationsRef = useRef(null)
+    const isSpecialUser = username == 'mx-rivera' || username == 'mx-velazquez' || username == 'mx-jortiz' || 
+                         username == 'mx-cmendez' || username == 'mx-jaen' || username == 'mx-msanchez'
 
-    return <>
-        <Slide direction="down">
-            <div className="flex">
-                <div className="block ml-10">
-                    <ToastContainer position="top-center" transition={Flip} limit={3} />
-                        
-                    <NNStaff nomina={nomina}/>
-
-                    <Datepicker rango={rango}/>
-                        
-                    <IncidentLS ref={incidentLSRef} incidente={incidente} setIncident={setIncident}/>
-
-                        {
-                            incident == 'Tiempo x Tiempo' ? <InputH h incidente={incident} handleInputChange={handleInputChange}/>
-                            :<InputD rango={date} handleDaysCalculated={handleDaysCalculated} incidente={incident} />
-                        }
-                        
-                        { incident == 'Tiempo x Tiempo' ? <DateTxT time={time} /> : null}
-
-                        { incident == 'Permiso s/goce' ? <UnpaidList unpaid={unpaid}/> : null}
-
-                        { incident == 'Incapacidad' ? <DisabilityList disability={disability}/> : null}
-                    </div>
-                    <div className="block ml-[10px] mr-5">
-                    
-                        <Observation ref={InputObservationsRef} observaciones={observaciones} setObservation={setObservation}/>
-
-                        <VacationsDay nomina={nomina}/>
-
-                        <div className="mt-10">
-                            <Checkbox onChange={mostrar} checked={notification}>Notificar a Vigilancia</Checkbox>
+    return (
+        <div className="min-h-full flex flex-col" style={{ 
+            minHeight: '100%', 
+            maxHeight: '100%', 
+            overflow: 'hidden',
+            position: 'relative'
+        }}>
+            <ToastContainer />
+            
+            {/* Layout principal sin scroll y sin Slide */}
+            <div className="flex flex-col h-full overflow-hidden">
+                {/* Header fijo */}
+                <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                                <FormOutlined className="text-white text-sm" />
+                            </div>
+                            <div>
+                                <Title level={4} className="!mb-0 !text-gray-800">
+                                    Registro de Incidencias
+                                </Title>
+                                <Text type="secondary" className="text-xs">
+                                    Nómina: {nomina} • ID: {identificador}
+                                </Text>
+                            </div>
                         </div>
                         
-                        <div className=" mt-14 animate-pulse ml-2">
-                            <label htmlFor="" className="block text-black text-sm font-semibold mb-2"></label>
-                            <HappyProvider>
-                                <Button className="transition ease-in-out delay-150 bg-white hover:-translate-y-1 hover:scale-110 hover:bg-red-600 duration-300g w-32 rounded-lg border border-black font-bold text-black h-[30px]" onClick={send}>💾​Save</Button>
-                            </HappyProvider>
-                            {
-                            identificador == 9 ? 
-                                <>
-                                    <Button type="primary" onClick={showModal} className="ml-2">Tarjeta</Button>
-                                        <Modal title="Olvido Tarjeta" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-                                        <label htmlFor="" className="mr-2 font-bold">NN:</label>
-                                        <Input
-                                            placeholder="NN"
-                                            ref={refOld}
-                                            className = "border border-red-600 w-20 rounded-full py-2 px-4 my-2 bg-transparent"
-                                        
-                                        />
-                                        <label htmlFor="" className="mr-1 ml-2 font-bold">Entrada:</label>
-                                        <TimePicker onChange={handleTimeStart} className="w-28"/>
-                                        <label htmlFor="" className="ml-4 mr-1 font-bold">Salida:</label>
-                                        <TimePicker onChange={handleTimeEnd} className="w-28"/>
-                                    </Modal>
-                                </>
-                                : username == 'mx-rivera' || username == 'mx-velazquez' || username == 'mx-jortiz' || username == 'mx-cmendez' || username == 'mx-jaen' ?
-                                <>
-                                    <Button type="primary" onClick={showModal} className="ml-2">Tarjeta</Button>
-                                        <Modal title="Olvido Tarjeta" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-                                            <div className="ml-48">
-                                                <label htmlFor="" className="mr-2 font-bold">NN:</label>
-                                                <Input
-                                                    placeholder="NN"
-                                                    ref={refOld}
-                                                    className = "border border-red-600 w-20 rounded-full py-2 px-4 my-2 bg-transparent"
-                                                
-                                                />
-                                            </div>
-                                            <div>
-                                                <label htmlFor="" className="mr-1 ml-2 font-bold">Fecha(SI la incidencia fue fin de semana):</label>
-                                                <DatePicker onChange={handleDateChange} />
-                                            </div>
-                                            <div className="mt-2">
-                                                <label htmlFor="" className="mr-1 ml-2 font-bold">Entrada:</label>
-                                                <TimePicker onChange={handleTimeStart} className="w-28"/>
-                                                <label htmlFor="" className="ml-4 mr-1 font-bold">Salida:</label>
-                                                <TimePicker onChange={handleTimeEnd} className="w-28"/>
-                                            </div>
-                                    </Modal>
-                                </>
-                                : null
-                            }  
-                        </div>    
+                        <div className="hidden md:block">
+                            <Tag color="blue" className="font-medium">
+                                {nomina}
+                            </Tag>
+                        </div>
+                    </div>
                 </div>
-            </div> 
-        </Slide>   
-    </>
- }
 
- export default StaffForm
+                {/* Contenido principal - SIN SCROLL */}
+                <div className="flex-1 p-3 md:p-4 overflow-hidden">
+                    <Row gutter={[12, 12]} className="h-full overflow-hidden">
+                        {/* Columna 1: Datos básicos */}
+                        <Col xs={24} lg={8} className="h-full overflow-hidden">
+                            <Card 
+                                className="h-full border-0 shadow-sm rounded-lg flex flex-col overflow-hidden"
+                                size="small"
+                                title={
+                                    <div className="flex items-center gap-2">
+                                        <CalendarOutlined className="text-blue-500 text-sm" />
+                                        <span className="text-sm font-semibold text-gray-800">Datos Principales</span>
+                                    </div>
+                                }
+                            >
+                                <div className="flex-1 overflow-hidden">
+                                    <Space direction="vertical" size="small" className="w-full h-full overflow-hidden">
+                                        <NNStaff nomina={nomina} compact={true} />
+                                        
+                                        <div>
+                                            <Text strong className="text-xs text-gray-600 block mb-1">
+                                                <CalendarOutlined className="mr-1" />
+                                                Período
+                                            </Text>
+                                            <Datepicker rango={rango} compact={true} />
+                                        </div>
+                                        
+                                        <div>
+                                            <Text strong className="text-xs text-gray-600 block mb-1">
+                                                <InfoCircleOutlined className="mr-1" />
+                                                Tipo de Incidencia
+                                            </Text>
+                                            <IncidentLS 
+                                                ref={incidentLSRef} 
+                                                incidente={incidente} 
+                                                setIncident={setIncident} 
+                                                compact={true}
+                                            />
+                                        </div>
+                                    </Space>
+                                </div>
+                            </Card>
+                        </Col>
+
+                        {/* Columna 2: Detalles específicos */}
+                        <Col xs={24} lg={8} className="h-full overflow-hidden">
+                            <Card 
+                                className="h-full border-0 shadow-sm rounded-lg flex flex-col overflow-hidden"
+                                size="small"
+                                title={
+                                    <div className="flex items-center gap-2">
+                                        <InfoCircleOutlined className="text-purple-500 text-sm" />
+                                        <span className="text-sm font-semibold text-gray-800">Detalles Específicos</span>
+                                    </div>
+                                }
+                            >
+                                <div className="flex-1 overflow-hidden">
+                                    <Space direction="vertical" size="small" className="w-full h-full overflow-hidden">
+                                        {/* Campos condicionales */}
+                                        <div className="min-h-[120px]">
+                                            {incident == 'Tiempo x Tiempo' ? (
+                                                <div className="space-y-3">
+                                                    <InputH h incidente={incident} handleInputChange={handleInputChange} compact={true} />
+                                                    <DateTxT time={time} compact={true} />
+                                                </div>
+                                            ) : incident && incident !== '-' ? (
+                                                <div>
+                                                    <InputD 
+                                                        rango={date} 
+                                                        handleDaysCalculated={handleDaysCalculated} 
+                                                        incidente={incident} 
+                                                        compact={true}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-center min-h-[120px]">
+                                                    <Alert
+                                                        message="Seleccione un tipo de incidencia"
+                                                        type="info"
+                                                        showIcon
+                                                        className="text-xs w-full"
+                                                        size="small"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {incident == 'Permiso s/goce' && (
+                                                <div className="mt-3">
+                                                    <UnpaidList unpaid={unpaid} compact={true} />
+                                                </div>
+                                            )}
+
+                                            {incident == 'Incapacidad' && (
+                                                <div className="mt-3">
+                                                    <DisabilityList disability={disability} compact={true} />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Space>
+                                </div>
+                            </Card>
+                        </Col>
+
+                        {/* Columna 3: Observaciones y acciones */}
+                        <Col xs={24} lg={8} className="h-full overflow-hidden">
+                            <div className="flex flex-col h-full gap-3 overflow-hidden">
+                                <Card 
+                                    className="flex-1 border-0 shadow-sm rounded-lg flex flex-col overflow-hidden"
+                                    size="small"
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <FormOutlined className="text-green-500 text-sm" />
+                                            <span className="text-sm font-semibold text-gray-800">Información Adicional</span>
+                                        </div>
+                                    }
+                                >
+                                    <div className="flex-1 overflow-hidden">
+                                        <Space direction="vertical" size="small" className="w-full h-full overflow-hidden">
+                                            <Observation 
+                                                ref={InputObservationsRef} 
+                                                observaciones={observaciones} 
+                                                setObservation={setObservation} 
+                                                compact={true}
+                                            />
+                                            
+                                            <div className="mt-2">
+                                                <VacationsDay nomina={nomina} compact={true} />
+                                            </div>
+                                            
+                                            <div className="mt-3 pt-2 border-t border-gray-100">
+                                                <Checkbox 
+                                                    onChange={mostrar} 
+                                                    checked={notification}
+                                                    className="text-gray-700"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <NotificationOutlined className="text-orange-500" />
+                                                        <span className="text-sm">Notificar a Vigilancia</span>
+                                                    </div>
+                                                </Checkbox>
+                                            </div>
+                                        </Space>
+                                    </div>
+                                </Card>
+
+                                {/* Panel de acciones fijo en la parte inferior */}
+                                <Card 
+                                    className="border-0 shadow-sm rounded-lg overflow-hidden"
+                                    size="small"
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <ClockCircleOutlined className="text-amber-500 text-sm" />
+                                            <span className="text-sm font-semibold text-gray-800">Acciones</span>
+                                        </div>
+                                    }
+                                >
+                                    <Space direction="vertical" size="small" className="w-full">
+                                        <HappyProvider>
+                                            <Button
+                                                type="primary"
+                                                icon={<SaveOutlined />}
+                                                onClick={send}
+                                                loading={loading}
+                                                size="large"
+                                                className="w-full h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 border-0 hover:from-blue-600 hover:to-purple-600"
+                                            >
+                                                Guardar Incidencia
+                                            </Button>
+                                        </HappyProvider>
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Button
+                                                type="default"
+                                                icon={<ClearOutlined />}
+                                                onClick={limpiarCampos}
+                                                size="middle"
+                                                className="h-9 rounded-lg border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-800"
+                                            >
+                                                Limpiar
+                                            </Button>
+
+                                            {(identificador == 9 || isSpecialUser) && (
+                                                <Button
+                                                    type="default"
+                                                    icon={<CreditCardOutlined />}
+                                                    onClick={showModal}
+                                                    size="middle"
+                                                    className="h-9 rounded-lg border-blue-300 text-blue-600 hover:border-blue-500 hover:text-blue-700"
+                                                >
+                                                    Tarjeta
+                                                </Button>
+                                            )}
+                                        </div>
+                                        
+                                        <Alert
+                                            message="Todos los campos marcados (*) son obligatorios"
+                                            type="info"
+                                            showIcon
+                                            className="text-xs rounded-lg mt-2"
+                                            size="small"
+                                        />
+                                    </Space>
+                                </Card>
+                            </div>
+                        </Col>
+                    </Row>
+                </div>
+            </div>
+
+            {/* Modal para Olvido Tarjeta */}
+            <Modal
+                title={
+                    <div className="flex items-center gap-2">
+                        <CreditCardOutlined className="text-blue-500" />
+                        <span className="font-semibold">Olvido de Tarjeta</span>
+                    </div>
+                }
+                open={isModalOpen}
+                onOk={handleOk}
+                onCancel={handleCancel}
+                confirmLoading={loading}
+                okText="Registrar"
+                cancelText="Cancelar"
+                className="rounded-xl"
+                width={isMobile ? "90%" : 400}
+                destroyOnClose
+            >
+                <Space direction="vertical" size="middle" className="w-full">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <UserOutlined className="mr-2" />
+                            Número de Nómina *
+                        </label>
+                        <Input
+                            placeholder="Ingrese NN"
+                            ref={refOld}
+                            size="large"
+                            className="rounded-lg"
+                        />
+                    </div>
+                    
+                    {isSpecialUser && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <CalendarOutlined className="mr-2" />
+                                Fecha (fin de semana)
+                            </label>
+                            <DatePicker 
+                                onChange={handleDateChange} 
+                                className="w-full rounded-lg"
+                                size="large"
+                                placeholder="Seleccione fecha"
+                            />
+                        </div>
+                    )}
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Entrada *
+                            </label>
+                            <TimePicker 
+                                onChange={handleTimeStart} 
+                                className="w-full rounded-lg"
+                                size="large"
+                                placeholder="00:00"
+                                format="HH:mm"
+                            />
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Salida *
+                            </label>
+                            <TimePicker 
+                                onChange={handleTimeEnd} 
+                                className="w-full rounded-lg"
+                                size="large"
+                                placeholder="00:00"
+                                format="HH:mm"
+                            />
+                        </div>
+                    </div>
+                    
+                    <Alert
+                        message="Campos obligatorios"
+                        description="Los campos marcados con (*) son requeridos para continuar."
+                        type="info"
+                        showIcon
+                        className="rounded-lg text-xs mt-2"
+                    />
+                </Space>
+            </Modal>
+
+            {/* Estilos optimizados para evitar scroll */}
+            <style>{`
+                /* Forzar no scroll en todos los elementos */
+                .overflow-auto, 
+                .overflow-scroll, 
+                .overflow-y-auto, 
+                .overflow-x-auto,
+                .ant-card-body,
+                .ant-space,
+                .ant-space-vertical,
+                .ant-col,
+                .ant-row {
+                    overflow: hidden !important;
+                }
+                
+                /* Asegurar que los componentes hijos tampoco creen scroll */
+                .compact-field .ant-form-item,
+                .compact-field .ant-input,
+                .compact-field .ant-picker,
+                .compact-field .ant-select-selector {
+                    overflow: hidden !important;
+                }
+                
+                /* Desactivar scrollbars completamente */
+                ::-webkit-scrollbar {
+                    width: 0px !important;
+                    height: 0px !important;
+                    display: none !important;
+                }
+                
+                /* Para Firefox */
+                * {
+                    scrollbar-width: none !important;
+                }
+            `}</style>
+        </div>
+    )
+}
+
+export default StaffForm

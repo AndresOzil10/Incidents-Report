@@ -8,9 +8,6 @@ const Home = () => {
     //console.log(id_consulta)
 
     return <>
-                    <div>
-                        <h2 className="ml-[-100px] text-3xl text-center text-red-500 font-bold mb-6">⚠️Control de Incidencias⚠️</h2>
-                    </div>
                     {
                         identificador=='3' ?
                           <SupervisorForm username={username} identificador={identificador} id_consulta={id_consulta}/>

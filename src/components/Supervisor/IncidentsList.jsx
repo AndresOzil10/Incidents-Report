@@ -78,6 +78,10 @@ const IncidentsList = forwardRef((props, ref) => {
                     value: 'Horas Capacitacion',
                     label: 'Horas Capacitacion',
                 },
+                {
+                    value: 'No Apoyo TE',
+                    label: 'No Apoyo TE',
+                },
                 ]}
             />
         </div>

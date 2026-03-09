@@ -20,7 +20,7 @@ const IncidentLS = forwardRef((props, ref) => {
 
     return <>
         <div className="mb-4">
-            <label htmlFor="" className="block text-white text-sm font-semibold mb-2">Incidencia:</label>
+            <label htmlFor="" className="block text-black text-sm font-semibold mb-2">Incidencia:</label>
             <Select
                 showSearch
                 value={incident}

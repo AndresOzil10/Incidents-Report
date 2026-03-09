@@ -8,8 +8,8 @@ import FooterLogin from "../components/Common/Footer";
 import { Input } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 
-//const url_login = "http://10.144.13.5/wl-api/login.php"
-const url_register = "http://10.144.13.5/wl-api/register.php"
+//const url_login = "http://localhost/wl-api/login.php"
+const url_register = "http://localhost/wl-api/register.php"
 
 /*const enviarData = async (url, data) => {
     const resp = await fetch(url, {

@@ -8,7 +8,7 @@ const ListArea = ({ lista }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const url_get = "http://10.144.13.5/wl-api/AreaList.php"
+                const url_get = "http://localhost/wl-api/AreaList.php"
                 const resp = await fetch(url_get, {
                     method: 'GET',
                     headers: {

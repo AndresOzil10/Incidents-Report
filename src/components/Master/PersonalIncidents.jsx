@@ -1,18 +1,20 @@
 import React from 'react'
-import { Table, Button, Input, Space, Tag} from 'antd'
+import { Table, Button, Input, Space, Tag, Card, Typography, Badge, Tooltip } from 'antd'
 import Highlighter from 'react-highlight-words'
 import { useEffect, useState, useRef } from 'react'
-import { SearchOutlined} from '@ant-design/icons'
+import { SearchOutlined, FilterOutlined, ReloadOutlined, CloseOutlined } from '@ant-design/icons'
 import { HappyProvider } from '@ant-design/happy-work-theme'
+
+const { Text } = Typography
 
 const renderStatusIcon = (estatus) => {
   switch (estatus) {
     case 'Aceptada':
-      return <Tag color="green">Aceptada</Tag>
+      return <Badge status="success" text={<Tag color="green" style={{ borderRadius: '20px', padding: '2px 12px' }}>Aceptada</Tag>} />
     case 'Denegado':
-      return <Tag color="red">Denegado</Tag>
+      return <Badge status="error" text={<Tag color="red" style={{ borderRadius: '20px', padding: '2px 12px' }}>Denegado</Tag>} />
     case 'Pendiente':
-      return <Tag color="gold">Pendiente</Tag>
+      return <Badge status="warning" text={<Tag color="gold" style={{ borderRadius: '20px', padding: '2px 12px' }}>Pendiente</Tag>} />
     default:
       return null
   }
@@ -20,42 +22,44 @@ const renderStatusIcon = (estatus) => {
 
 const PersonalIncidents = ({identificador, id_consulta, nomina, username}) => {
   const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
 
-  //console.log(id_consulta)
-   useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
-        try {
-            const data = {
-              "username": username,
-            }
-            const url_get = "http://10.144.13.5/wl-api/PCShieff.php"
-            //const url_get = "http://10.144.13.5/wl-api/PCShieff.php"
-            const resp = await fetch(url_get, {
-                method: 'POST',
-                body: JSON.stringify(data),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            const json = await resp.json()
-            if (Array.isArray(json)) {
-                setData(json)
-            } else if (json.data && Array.isArray(json.data)) {
-                setData(json.data)
-            } else {
-                console.error('La respuesta no es un arreglo válido:', json)
-            }
-        } catch (error) {
-            console.error('Error al obtener los datos:', error)
+      setLoading(true)
+      try {
+        const data = {
+          "username": username,
         }
+        const url_get = "http://localhost/wl-api/PCShieff.php"
+        const resp = await fetch(url_get, {
+          method: 'POST',
+          body: JSON.stringify(data),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        const json = await resp.json()
+        if (Array.isArray(json)) {
+          setData(json)
+        } else if (json.data && Array.isArray(json.data)) {
+          setData(json.data)
+        } else {
+          console.error('La respuesta no es un arreglo válido:', json)
+        }
+      } catch (error) {
+        console.error('Error al obtener los datos:', error)
+      } finally {
+        setLoading(false)
+      }
     };
     fetchData()
-  }, [])
+  }, [username])
 
-  const dataSource = data.map((jsonres) => ({
-    key: jsonres.id,
+  const dataSource = data.map((jsonres, index) => ({
+    key: jsonres.id || index,
     id: jsonres.id,
-    nn: jsonres.nn, 
+    nn: jsonres.nn,
     nombre: jsonres.nombre,
     area: jsonres.area,
     fecha_ini: jsonres.fecha_ini,
@@ -67,12 +71,14 @@ const PersonalIncidents = ({identificador, id_consulta, nomina, username}) => {
     fecha_pago: jsonres.fecha_pago,
     tipo_inca: jsonres.tipo_inca,
     observacion: jsonres.observacion,
-    estatus: renderStatusIcon(jsonres.estatus)
+    estatus: jsonres.estatus,
+    estatusTag: renderStatusIcon(jsonres.estatus)
   }))
 
   const [searchText, setSearchText] = useState('')
   const [searchedColumn, setSearchedColumn] = useState('')
   const searchInput = useRef(null)
+
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
@@ -84,87 +90,84 @@ const PersonalIncidents = ({identificador, id_consulta, nomina, username}) => {
     setSearchText('');
   }
 
-  const getColumnSearchProps = (dataIndex) => ({
+  const getColumnSearchProps = (dataIndex, title) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
       <div
         style={{
-          padding: 8,
+          padding: '12px',
+          background: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          minWidth: '220px',
         }}
         onKeyDown={(e) => e.stopPropagation()}
       >
+        <Text strong style={{ display: 'block', marginBottom: '8px', color: '#1f2937' }}>
+          Buscar por {title || dataIndex}
+        </Text>
         <Input
           ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
+          placeholder={`Ingrese texto...`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           style={{
-            marginBottom: 8,
-            display: 'block',
+            marginBottom: '12px',
+            borderRadius: '8px',
           }}
+          prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+          allowClear
         />
-        <Space>
-        <HappyProvider>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{
-              width: 90,
-            }}
-          >
-            Search
-          </Button>
-          <Button
-            onClick={() => clearFilters && handleReset(clearFilters)}
-            size="small"
-            style={{
-              width: 90,
-            }}
-          >
-            Reset
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              confirm({
-                closeDropdown: false,
-              });
-              setSearchText(selectedKeys[0]);
-              setSearchedColumn(dataIndex);
-            }}
-          >
-            Filter
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              close();
-            }}
-          >
-            close
-          </Button>
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          <HappyProvider>
+            <Space style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <Button
+                type="primary"
+                onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+                icon={<SearchOutlined />}
+                size="small"
+                style={{
+                  flex: 1,
+                  borderRadius: '6px',
+                  background: '#4f46e5',
+                }}
+              >
+                Buscar
+              </Button>
+              <Button
+                onClick={() => clearFilters && handleReset(clearFilters)}
+                size="small"
+                icon={<ReloadOutlined />}
+                style={{
+                  borderRadius: '6px',
+                }}
+              />
+              <Button
+                type="text"
+                size="small"
+                icon={<CloseOutlined />}
+                onClick={() => close()}
+                style={{
+                  borderRadius: '6px',
+                }}
+              />
+            </Space>
           </HappyProvider>
         </Space>
       </div>
     ),
     filterIcon: (filtered) => (
-      <SearchOutlined
+      <FilterOutlined
         style={{
-          color: filtered ? '#1677ff' : undefined,
+          color: filtered ? '#4f46e5' : '#9ca3af',
+          fontSize: '14px',
         }}
       />
     ),
     onFilter: (value, record) => {
-      //console.log('record:', record);
-      //console.log('dataIndex:', dataIndex);
       const fieldValue = record[dataIndex];
-      //console.log('fieldValue:', fieldValue);
       return fieldValue && fieldValue.toString().toLowerCase().includes(value.toLowerCase());
-   },
+    },
     onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => searchInput.current?.select(), 100);
@@ -174,122 +177,246 @@ const PersonalIncidents = ({identificador, id_consulta, nomina, username}) => {
       searchedColumn === dataIndex ? (
         <Highlighter
           highlightStyle={{
-            backgroundColor: '#ffc069',
-            padding: 0,
+            backgroundColor: '#fef3c7',
+            padding: '2px 0',
+            fontWeight: '500',
+            borderRadius: '4px',
           }}
           searchWords={[searchText]}
           autoEscape
           textToHighlight={text ? text.toString() : ''}
         />
       ) : (
-        text
+        <span style={{ color: '#1f2937' }}>{text}</span>
       ),
   })
 
   const columns = [
     {
-      title: 'id',
+      title: <Text strong style={{ color: '#4b5563' }}>ID</Text>,
       width: 100,
       dataIndex: 'id',
       key: 'id',
       fixed: 'left',
-      ...getColumnSearchProps('id'),
+      ...getColumnSearchProps('id', 'ID'),
+      render: (text) => <Tag color="blue" style={{ borderRadius: '12px' }}>{text}</Tag>,
     },
     {
-      title: 'N.Nomina',
-      width: 100,
+      title: <Text strong style={{ color: '#4b5563' }}>N° Nómina</Text>,
+      width: 130,
       dataIndex: 'nn',
       key: 'nn',
       fixed: 'left',
-      sorter: true,
-      ...getColumnSearchProps('nn'),
+      sorter: (a, b) => a.nn - b.nn,
+      ...getColumnSearchProps('nn', 'N° Nómina'),
+      render: (text) => <Text copyable={{ text: text }} style={{ fontWeight: '500' }}>{text}</Text>,
     },
     {
-      title: 'Nombre',
+      title: <Text strong style={{ color: '#4b5563' }}>Nombre</Text>,
+      width: 200,
       dataIndex: 'nombre',
       key: '1',
-      ...getColumnSearchProps('nombre'),
+      ...getColumnSearchProps('nombre', 'Nombre'),
+      render: (text) => <Text style={{ fontWeight: '500' }}>{text}</Text>,
     },
     {
-      title: 'Area',
+      title: <Text strong style={{ color: '#4b5563' }}>Área</Text>,
+      width: 150,
       dataIndex: 'area',
       key: '2',
+      ...getColumnSearchProps('area', 'Área'),
+      render: (text) => <Tag color="purple" style={{ borderRadius: '12px' }}>{text}</Tag>,
     },
     {
-      title: 'Fecha Inicio',
+      title: <Text strong style={{ color: '#4b5563' }}>Fecha Inicio</Text>,
+      width: 130,
       dataIndex: 'fecha_ini',
       key: '3',
-      ...getColumnSearchProps('fecha_ini'),
+      ...getColumnSearchProps('fecha_ini', 'Fecha Inicio'),
+      render: (text) => <Badge status="processing" text={text} />,
     },
     {
-      title: 'Fecha Final',
+      title: <Text strong style={{ color: '#4b5563' }}>Fecha Final</Text>,
+      width: 130,
       dataIndex: 'fecha_final',
       key: '4',
-      ...getColumnSearchProps('fecha_final'),
+      ...getColumnSearchProps('fecha_final', 'Fecha Final'),
+      render: (text) => <Badge status="default" text={text} />,
     },
     {
-      title: 'Semana',
+      title: <Text strong style={{ color: '#4b5563' }}>Semana</Text>,
+      width: 120,
       dataIndex: 'semana',
       key: '5',
+      render: (text) => <Tag color="cyan" style={{ borderRadius: '12px' }}>Semana {text}</Tag>,
     },
     {
-      title: 'Incidencia',
+      title: <Text strong style={{ color: '#4b5563' }}>Incidencia</Text>,
+      width: 150,
       dataIndex: 'incidencia',
       key: '6',
-      ...getColumnSearchProps('incidencia'),
+      ...getColumnSearchProps('incidencia', 'Incidencia'),
+      render: (text) => (
+        <Tooltip title="Tipo de incidencia">
+          <Tag color="orange" style={{ borderRadius: '12px' }}>{text}</Tag>
+        </Tooltip>
+      ),
     },
     {
-      title: 'Hrs/Dia Incidencia',
+      title: <Text strong style={{ color: '#4b5563' }}>Horas/Día</Text>,
+      width: 120,
       dataIndex: 'hrs_inci',
       key: '7',
+      render: (text) => <Text strong style={{ color: '#059669' }}>{text} h</Text>,
     },
     {
-      title: 'Clave Permiso',
+      title: <Text strong style={{ color: '#4b5563' }}>Clave Permiso</Text>,
+      width: 140,
       dataIndex: 'clave_perm',
       key: '9',
+      render: (text) => <Tag color="geekblue" style={{ borderRadius: '12px' }}>{text || 'N/A'}</Tag>,
     },
     {
-      title: 'Fecha Pago',
+      title: <Text strong style={{ color: '#4b5563' }}>Fecha Pago</Text>,
+      width: 130,
       dataIndex: 'fecha_pago',
       key: '10',
+      render: (text) => <Badge status="success" text={text || 'No asignada'} />,
     },
     {
-      title: 'Tipo Incapacidad',
+      title: <Text strong style={{ color: '#4b5563' }}>Tipo Incapacidad</Text>,
+      width: 150,
       dataIndex: 'tipo_inca',
       key: '11',
+      render: (text) => <Tag color="volcano" style={{ borderRadius: '12px' }}>{text || 'N/A'}</Tag>,
     },
     {
-      title: 'Observaciones',
+      title: <Text strong style={{ color: '#4b5563' }}>Observaciones</Text>,
+      width: 250,
       dataIndex: 'observacion',
       key: '12',
+      ...getColumnSearchProps('observacion', 'Observaciones'),
+      render: (text) => (
+        <Tooltip title={text}>
+          <Text ellipsis style={{ maxWidth: '230px', color: '#6b7280' }}>
+            {text || 'Sin observaciones'}
+          </Text>
+        </Tooltip>
+      ),
     },
     {
-      title: 'Estatus',
-      dataIndex: 'estatus',
+      title: <Text strong style={{ color: '#4b5563' }}>Estatus</Text>,
+      dataIndex: 'estatusTag',
       fixed: 'right',
-      width: 50,
+      width: 140,
       key: '13',
+      filters: [
+        { text: 'Aceptada', value: 'Aceptada' },
+        { text: 'Denegado', value: 'Denegado' },
+        { text: 'Pendiente', value: 'Pendiente' },
+      ],
+      onFilter: (value, record) => record.estatus === value,
     },
-    /*{
-      title: 'Action',
-      key: 'operation',
-      fixed: 'right',
-      width: 100,
-      render: () => <a>action</a>,
-    },*/
   ]
 
   return (
-    <Table
-      className='table-auto ml-[-100px] '
-      pagination={true}
-      columns={columns}
-      dataSource={dataSource}
-      scroll={{
-        x: 'max-content',
+    <Card
+      style={{
+        borderRadius: '16px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+        background: '#ffffff',
       }}
-      size='small'
-    />
+      bodyStyle={{ padding: '16px' }}
+    >
+      <div style={{ marginBottom: '16px' }}>
+        <Text strong style={{ fontSize: '18px', color: '#111827' }}>
+          Incidencias Personales
+        </Text>
+      </div>
+      
+      <Table
+        columns={columns}
+        dataSource={dataSource}
+        loading={loading}
+        scroll={{
+          x: 'max-content',
+          y: 'calc(100vh - 300px)',
+        }}
+        size="middle"
+        pagination={{
+          defaultPageSize: 9,
+          pageSize: 9,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50', '100'],
+          showQuickJumper: true,
+          position: ['bottomRight'],
+          style: { marginTop: '16px' },
+        }}
+        rowClassName={(record) => {
+          if (record.estatus === 'Pendiente') return 'row-pending'
+          if (record.estatus === 'Aceptada') return 'row-accepted'
+          if (record.estatus === 'Denegado') return 'row-denied'
+          return ''
+        }}
+        sticky={{
+          offsetHeader: 0,
+        }}
+        style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+        }}
+      />
+
+      <style jsx>{`
+        :global(.ant-table-thead > tr > th) {
+          background: #f9fafb !important;
+          font-weight: 600;
+          border-bottom: 2px solid #e5e7eb !important;
+        }
+        
+        :global(.ant-table-tbody > tr:hover > td) {
+          background: #f3f4f6 !important;
+        }
+        
+        :global(.row-pending) {
+          background: #fffbeb !important;
+        }
+        
+        :global(.row-accepted) {
+          background: #f0fdf4 !important;
+        }
+        
+        :global(.row-denied) {
+          background: #fef2f2 !important;
+        }
+        
+        :global(.ant-table-cell) {
+          transition: all 0.2s !important;
+        }
+        
+        :global(.ant-badge-status-text) {
+          font-size: 13px;
+        }
+        
+        :global(.ant-tag) {
+          transition: all 0.2s;
+        }
+        
+        :global(.ant-tag:hover) {
+          transform: scale(1.05);
+          cursor: default;
+        }
+        
+        :global(.ant-table-filter-trigger) {
+          color: #9ca3af;
+        }
+        
+        :global(.ant-table-filter-trigger.active) {
+          color: #4f46e5;
+        }
+      `}</style>
+    </Card>
   );
 };
+
 export default PersonalIncidents;

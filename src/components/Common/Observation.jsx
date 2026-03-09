@@ -17,7 +17,7 @@ const Observation = forwardRef((props, ref) => {
 
     return<>
     <div className="mb-4">
-        <label htmlFor="" className="block text-white text-sm font-semibold mb-2">Observaciones:</label>
+        <label htmlFor="" className="block text-black text-sm font-semibold mb-2">Observaciones:</label>
         <Input value={observation} placeholder="Observations" variant="filled" className="w-full px-3 py-2 rounded-lg h-8 bg-white" onChange={(event) => {
         const value = event.target.value
         //console.log(value)
